@@ -1,0 +1,155 @@
+---
+title: "Gender pay gap analysis"
+output:
+  html_document:
+    df_print: paged
+---
+
+Data is from https://gender-pay-gap.service.gov.uk/viewing/download
+
+# Load in packages and data
+
+```{r}
+#install.packages("tidyverse")
+#install.packages("janitor")
+
+library(tidyverse)
+library(janitor)
+```
+
+```{r}
+# here is how I would read the data files one at a time
+gender_pay_2017_18 <- read_csv("data/UK Gender Pay Gap Data - 2017 to 2018.csv")
+gender_pay_2018_19 <- read_csv("data/UK Gender Pay Gap Data - 2018 to 2019.csv")
+
+# read in multiple files in one:
+list_of_files <- list.files(path = "data", # specify the folder path
+                            pattern = "\\.csv$", # only return files that end in csv
+                            full.names = TRUE # foldeer path attached to the beginning of the file name
+                            )
+
+pay_combined <- read_csv(list_of_files, id = "file_name")
+
+pay_combined
+```
+
+# Tidy the data
+
+```{r}
+pay_trimmed <- pay_combined %>% 
+  clean_names() %>% 
+  mutate(year_starting = as.numeric(str_extract(file_name, "[0-9]+")), .before = 1) %>%  # take the first year listed in the file name
+  select(contains(c("year", "post", "percent", "quartile", "size"))) # selecting desired columns
+
+pay_trimmed
+```
+
+# Find out the Scottish postcodes
+
+```{r}
+scottish_postcodes <- c("AB", "DD", "PH", "FK", "G", "PA", "DG", "KA", "ML", "DG", "EH", "KY", "IV", "TD", "ZE", "HS")
+```
+
+Cut down the postcode column to just the first section and use this to determine if a company is in scotland or not:
+```{r}
+pay_region <- pay_trimmed %>% 
+  mutate(post_code = str_extract(post_code, "[A-Z0-9]+")) %>% 
+  mutate(post_code = str_remove_all(post_code, "[0-9]+")) %>% 
+  mutate(region = if_else(post_code %in% scottish_postcodes, "Scotland", "Rest of UK"), .after = post_code) %>% 
+  select(-post_code)
+
+pay_region
+```
+
+# What pay differences can we see in Scotland year on year?
+
+diff_mean_hourly_percent: mean % difference between male and female hourly pay (negative = women's mean hourly pay is higher)
+
+```{r}
+pay_region %>% 
+  filter(region == "Scotland") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = year_starting, y = diff_mean_hourly_percent, group = year_starting), colour = "blue", alpha = 0.5) +
+  labs(
+    title = "Gender pay differences across Scottish companies",
+    subtitle = "2017 - 2023\n",
+    x = "\nFinancial year starting",
+    y = "Mean % difference in hourly pay\n(M - F)"
+  ) +
+  scale_x_continuous(breaks = c(2017, 2018, 2019, 2020, 2021, 2022, 2023)) +
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(colour = "black")) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  coord_flip()
+  
+```
+
+Let's check out 2023
+
+```{r}
+pay_region %>% 
+  filter(region == "Scotland") %>% 
+  group_by(year_starting) %>% 
+  summarise(nrows = n())
+```
+
+# Are there any differences in bonuses given in Scottish companies?
+
+male_bonus_percent: % of male employees paid a bonus
+
+female_bonus_percent: % of female employees paid a bonus
+
+```{r}
+pay_region %>% 
+  filter(region == "Scotland") %>% 
+  select(male_bonus_percent, female_bonus_percent) %>% 
+  filter(male_bonus_percent != 0 & female_bonus_percent != 0) %>% 
+  pivot_longer(cols = c("male_bonus_percent",
+                        "female_bonus_percent"),
+               names_to = "gender",
+               values_to = "bonus_percent") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = gender, y = bonus_percent, colour = gender), linewidth = 1.5, show.legend = FALSE) +
+  labs(
+    title = "Bonuses paid across Scottish companies",
+    subtitle = "2017 - 2023\n",
+    x = "",
+    y = "% of employees paid a bonus"
+  ) +
+  scale_x_discrete(labels = c("Women", "Men")) +
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(colour = "black"))
+```
+
+Can see that there is very little difference in the bonuses paid to men and women across Scottish companies.
+
+# Does company size affect pay disparity?
+
+```{r}
+pay_region %>% 
+  filter(region == "Scotland") %>% 
+  mutate(employer_size = factor(employer_size, levels = c("Less than 250", "250 to 499", "500 to 999", "1000 to 4999", "5000 to 19,999", "20,000 or more", "Not Provided"))) %>% 
+  filter(!employer_size %in% c("Not Provided", NA)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = employer_size, y = diff_mean_hourly_percent), colour = "blue") +
+  labs(
+    title = "Gender pay differences across Scottish companies",
+    subtitle = "2017 - 2023\n",
+    x = "\nCompany size",
+    y = "Mean % difference in hourly pay\n(M - F)"
+  ) +
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(colour = "black")) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  coord_flip()
+```
+
+This plot appears to show that the larger a company is, the larger the pay gap between men and women (with men earning more per hour).
+
+# How does Scotland compare to the rest of the UK year on year?
+A line plot could be good for this
+
+# How does Edinburgh compare to London when it comes to the gender pay gap?
