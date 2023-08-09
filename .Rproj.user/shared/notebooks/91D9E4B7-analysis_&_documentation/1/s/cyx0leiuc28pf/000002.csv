@@ -1,0 +1,16 @@
+"0","```r
+max_k <- 10 # max number of clusters to test
+
+k_clusters <- tibble(k = 1:max_k) %>% 
+  mutate(
+    kclust = map(k, ~ kmeans(playtime_ratings_scaled, .x, nstart = 25)),
+   tidied = map(kclust, tidy),
+    glanced = map(kclust, glance),
+    augmented = map(kclust, augment, playtime_ratings)
+  )
+
+clusterings <- k_clusters %>% 
+  unnest(glanced)
+
+clusterings
+```"

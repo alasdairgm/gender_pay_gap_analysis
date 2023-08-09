@@ -1,0 +1,7 @@
+"0","```r
+synopses_df <- movies %>% 
+  select(title, synopsis) %>% 
+  unnest_tokens(word, synopsis)
+
+synopses_df
+```"

@@ -1,0 +1,18 @@
+"0","```r
+bg_data %>% 
+  ggplot(aes(x = my_rating, y = average_bgg_rating)) +
+  geom_point(colour = \"steelblue\", size = 4, alpha = 0.5) +
+  xlim(c(0, 10)) +
+  ylim(c(0, 10)) +
+  labs(x = \"\nMy rating\",
+       y = \"Average BGG rating\",
+       ) +
+  theme(text = element_text(size = 16)) +
+  theme_minimal() +
+  geom_abline(intercept = 0, slope = 1,
+              linetype = \"dashed\", colour = \"red\",
+              size = 1)
+```"
+"1","Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+Please use `linewidth` instead.
+"

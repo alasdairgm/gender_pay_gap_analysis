@@ -1,0 +1,9 @@
+"0","```r
+library(ggwordcloud)
+
+ggwordcloud(
+  words = just_words$word,
+  freq = just_words$n,
+  min.freq = 2
+)
+```"

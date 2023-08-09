@@ -1,0 +1,8 @@
+"0","```r
+all_synopses_tf_idf <- synopses_df_no_stop %>% 
+  count(title, word) %>% 
+  bind_tf_idf(term = word, document = title, n = n) %>% 
+  arrange(desc(tf_idf))
+
+all_synopses_tf_idf
+```"

@@ -1,0 +1,5 @@
+"0","```r
+synopses_df_no_stop <- synopses_df %>% 
+  anti_join(stop_words, by = \"word\") %>% 
+  count(title, word, sort = TRUE)
+```"

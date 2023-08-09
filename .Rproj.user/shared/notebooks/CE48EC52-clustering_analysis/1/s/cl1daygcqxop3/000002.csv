@@ -1,0 +1,4 @@
+"0","```r
+synopses_df %>% 
+  count(title, word)
+```"

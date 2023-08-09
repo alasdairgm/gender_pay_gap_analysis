@@ -1,0 +1,9 @@
+"0","```r
+just_words <- movies %>% 
+  select(synopsis) %>% 
+  unnest_tokens(word, synopsis) %>% 
+  anti_join(stop_words, by = \"word\") %>% 
+  count(word)
+
+just_words
+```"

@@ -1,0 +1,486 @@
+---
+title: "Boardgame data analysis"
+output:
+  html_document:
+    toc: true # contents
+    toc_float: true # contents float
+    number_sections: true
+    df_print: paged # paged dataframes
+    css: styles.css # use css file from this project
+  pdf_document: default
+---
+
+# Introduction
+
+I downloaded data on all the boardgames I own from boardgamegeek.com and combined it with my own data (price I paid, my rating) so as to explore the data and pull out any patterns.
+
+In this notebook I will also build a model to explain and predict my rating of a game based on several potential predictors.
+
+
+```{r}
+library(tidyverse)
+library(broom)
+
+bg_data <- read_csv("clean_data/boardgames_clean.csv")
+
+bg_data
+```
+
+
+# What are the best and worst games I own according to me and according to Boardgamegeek?
+
+```{r}
+bg_data %>% 
+  slice_max(my_rating)
+```
+
+Yep, these are some excellent games.
+
+```{r}
+bg_data %>% 
+  slice_min(my_rating)
+```
+
+This makes sense. I sincerely regret buying Gorilla Marketing. Strange, strange game.
+
+```{r}
+bg_data %>% 
+  slice_max(average_bgg_rating)
+```
+Good taste all round.
+
+```{r}
+bg_data %>% 
+  slice_min(average_bgg_rating)
+```
+Yeah I don't exactly disagree with this. Not my favourite game but not the worst.
+
+
+Let's see how my ratings compare with the average BGG ones for these games:
+```{r}
+bg_data %>% 
+  filter(boardgame %in% c("Everdell: The Complete Collection",
+                          "Root", "Sleeping Gods", "Gorilla Marketing",
+                          "Bears Vs Babies")) %>% 
+  mutate(boardgame = if_else(str_detect(boardgame, "Everdell"),
+                                         "Everdell", boardgame)) %>% 
+  ggplot(aes(x = my_rating, y = average_bgg_rating)) +
+  geom_point(colour = "steelblue", size = 5) +
+  geom_text(aes(label = boardgame),
+            nudge_x = -0.6, angle = 45) +
+  xlim(c(0, 10)) +
+  ylim(c(0, 10)) +
+  labs(x = "\nMy rating",
+       y = "Average BGG rating",
+       ) +
+  theme(text = element_text(size = 16)) +
+  theme_minimal()
+```
+
+
+# How does this comparison look across all of my games?
+
+```{r}
+bg_data %>% 
+  ggplot(aes(x = my_rating, y = average_bgg_rating)) +
+  geom_point(colour = "steelblue", size = 4, alpha = 0.5) +
+  xlim(c(0, 10)) +
+  ylim(c(0, 10)) +
+  labs(x = "\nMy rating",
+       y = "Average BGG rating",
+       ) +
+  theme(text = element_text(size = 16)) +
+  theme_minimal() +
+  geom_abline(intercept = 0, slope = 1,
+              linetype = "dashed", colour = "red",
+              size = 1)
+```
+
+Looks fairly correlated. Let's find a value:
+```{r}
+library(corrr)
+
+# bg_data %>% 
+#   corrr::correlate() %>% 
+#   corrr::network_plot(colors = c("red", "green"))
+#   cor(my_rating, average_bgg_rating)
+  
+bg_data %>% 
+  drop_na(my_rating) %>% 
+  summarise(correlation = cor(my_rating, average_bgg_rating))
+```
+A correlation of 0.58 - fairly strong but nothing to write home about. Can see that I rank poorer games lower than the BGG average and better games higher than the average.
+
+
+
+# How do my games fair in the overall Boardgamegeek ranking?
+
+```{r}
+bg_data %>% 
+  # removing anything after a colon to save space
+  mutate(boardgame = case_when(
+    str_detect(boardgame, ":") ~ str_extract(boardgame, "(.+): ", group = 1),
+    .default = boardgame)) %>%
+  mutate(top_100 = if_else(bgg_rank <= 100, TRUE, FALSE)) %>% 
+  ggplot() +
+  geom_col(aes(x = reorder(boardgame, -bgg_rank), y = bgg_rank, fill = top_100)) +
+  coord_flip() +
+  labs(y = "BGG rank",
+       x = "",
+       fill = "Top 100?")
+
+```
+
+
+```{r}
+bg_data %>% 
+  mutate(top_100 = if_else(bgg_rank <= 100, TRUE, FALSE)) %>% 
+  group_by(top_100) %>% 
+  summarise(prop_in_top_100 = n() / nrow(bg_data) * 100)
+
+```
+
+Approximately 16% of my boardgames are in the top ranked 100.
+
+Just those games in the top 1000:
+```{r}
+bg_data %>% 
+  filter(bgg_rank <= 1000) %>% 
+  # removing anything after a colon to save space
+  mutate(boardgame = case_when(
+    str_detect(boardgame, ":") ~ str_extract(boardgame, "(.+): ", group = 1),
+    .default = boardgame)) %>%
+  mutate(top_100 = if_else(bgg_rank <= 100, TRUE, FALSE)) %>% 
+  ggplot() +
+  geom_col(aes(x = reorder(boardgame, -bgg_rank), y = bgg_rank, fill = top_100)) +
+  coord_flip() +
+  labs(y = "BGG rank",
+       x = "",
+       fill = "Top 100?")
+
+```
+
+
+# Number of players
+
+Does the number of recommended players for a game affect my enjoyment of it?
+
+```{r}
+bg_data %>% 
+  ggplot(aes(x = average_players, y = my_rating)) +
+  geom_point(colour = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal() 
+```
+
+Quite a mixed spread with no real trend. 
+
+## Clustering
+
+Wrangle and scale the data:
+
+```{r}
+players_ratings <- bg_data %>% 
+  select(my_rating, average_players) %>% 
+  drop_na()
+
+players_ratings_scaled <- players_ratings %>% 
+  mutate_if(is.numeric, scale)   # scale values
+
+players_ratings
+
+```
+
+Create k-clusters of data:
+
+```{r}
+max_k <- 10 # max number of clusters to test
+
+k_clusters <- tibble(k = 1:max_k) %>% 
+  mutate(
+    kclust = map(k, ~ kmeans(players_ratings_scaled, .x, nstart = 25)),
+   tidied = map(kclust, tidy),
+    glanced = map(kclust, glance),
+    augmented = map(kclust, augment, players_ratings)
+  )
+
+clusterings <- k_clusters %>% 
+  unnest(glanced)
+
+clusterings
+```
+
+Plot the number of clusters with total within SSs:
+```{r}
+ggplot(clusterings, aes(x=k, y=tot.withinss)) +
+  geom_point() +
+    geom_line() +
+    scale_x_continuous(breaks = seq(1, 10, by = 1))
+```
+
+k = 4 seems to be a good kink in the elbow, so 4 clusters is sensible.
+
+Can also see this with:
+```{r}
+library(factoextra)
+
+fviz_nbclust(players_ratings_scaled, 
+             kmeans, 
+             method = "wss", 
+             nstart = 25)
+```
+
+Let's visualise the clusters:
+```{r}
+players_cluster_plot <- clusterings %>% 
+  unnest(cols = c(augmented)) %>%
+  filter(k <= 4) %>%
+  ggplot(aes(x = average_players, y = my_rating)) +
+  geom_point(aes(colour = .cluster)) +
+  labs(x = "Average players",
+       y = "My rating",
+       colour = "Cluster")
+
+players_cluster_plot
+```
+
+
+Will add points to the scatterplot to visualise cluster means:
+
+```{r}
+cluster_means <- clusterings %>% 
+  unnest(augmented) %>%
+  filter(k == 4) %>%
+  group_by(.cluster) %>%
+  summarise(mean_players = mean(average_players), mean_rating = mean(my_rating)) %>% 
+  select(-.cluster)
+
+cluster_means
+
+players_cluster_plot +
+  geom_point(data = cluster_means,
+             aes(x = mean_players, y = mean_rating),
+             colour = "black", shape = 8, size = 3)
+  
+```
+
+Cluster 2 seems to represent the games that can accommodate medium-sized groups that I don't enjoy very much.
+
+Cluster 3 seems to represent the party games that can play with large groups that I enjoy very much - e.g. Wavelength.
+
+Cluster 4 contains those games for smaller groups that I find pretty good.
+
+Cluster 1 contains the games for the smallest groups that I find excellent.
+
+
+
+# Play time
+
+Does the play time of a game affect my enjoyment of it?
+
+```{r}
+bg_data %>% 
+  ggplot(aes(x = play_time, y = my_rating)) +
+  geom_point(colour = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal()
+```
+
+There seems to be a slight positive relationship between the length of a game and how I rate it.
+
+## Clustering
+
+```{r}
+playtime_ratings <- bg_data %>% 
+  select(my_rating, play_time) %>% 
+  drop_na()
+
+playtime_ratings_scaled <- playtime_ratings %>%
+  mutate_if(is.numeric, scale)   # scale values
+
+playtime_ratings
+
+```
+
+
+Create clusters:
+
+```{r}
+max_k <- 10 # max number of clusters to test
+
+k_clusters <- tibble(k = 1:max_k) %>% 
+  mutate(
+    kclust = map(k, ~ kmeans(playtime_ratings_scaled, .x, nstart = 25)),
+   tidied = map(kclust, tidy),
+    glanced = map(kclust, glance),
+    augmented = map(kclust, augment, playtime_ratings)
+  )
+
+clusterings <- k_clusters %>% 
+  unnest(glanced)
+
+clusterings
+```
+
+
+```{r}
+ggplot(clusterings, aes(x=k, y=tot.withinss)) +
+  geom_point() +
+    geom_line() +
+    scale_x_continuous(breaks = seq(1, 10, by = 1))
+```
+
+k = 4 or 5 seems to be a good kink in the elbow, so 4 clusters is sensible.
+
+Can also see this with:
+```{r}
+library(factoextra)
+
+fviz_nbclust(playtime_ratings_scaled, 
+             kmeans, 
+             method = "wss", 
+             nstart = 25)
+```
+
+Let's visualise the clusters:
+```{r}
+playtime_cluster_plot <- clusterings %>% 
+  unnest(cols = c(augmented)) %>%
+  filter(k <= 4) %>%
+  ggplot(aes(x = play_time, y = my_rating)) +
+  geom_point(aes(colour = .cluster)) +
+  labs(x = "Average play time (mins)",
+       y = "My rating",
+       colour = "Cluster")
+
+playtime_cluster_plot
+```
+
+
+Will add points to the scatterplot to visualise cluster means:
+
+```{r}
+cluster_means <- clusterings %>% 
+  unnest(augmented) %>%
+  filter(k == 4) %>%
+  group_by(.cluster) %>%
+  summarise(mean_playtime = mean(play_time), mean_rating = mean(my_rating)) %>% 
+  select(-.cluster)
+
+cluster_means
+
+playtime_cluster_plot +
+  geom_point(data = cluster_means,
+             aes(x = mean_playtime, y = mean_rating),
+             colour = "black", shape = 8, size = 3)
+  
+```
+
+Cluster 1 appears to be the LONG games I really enjoy (like Sleeping Gods)
+
+Cluster 2 is the short games I find okay (like little party games I'd expect)
+
+Cluster 3 is the short games I really enjoy such as Back to the Future, Bilder, Decrypto.
+
+```{r}
+bg_data %>% 
+  filter(my_rating > 6 & my_rating <= 8) %>% 
+  filter(play_time < 75)
+```
+
+
+Cluster 4 is the sweet spot: amazing games that don't take all day (Captain Sonar, Everdell, Lost Ruins of Arnak)
+
+```{r}
+bg_data %>% 
+  filter(my_rating >= 8) %>% 
+  filter(play_time < 125 & play_time > 50)
+```
+
+
+# Linear regression model: can I predict how I will rate a boardgame?
+
+```{r}
+library(modelr)
+library(GGally)
+library(ggfortify)
+```
+
+```{r warning=FALSE}
+bg_data %>% 
+  select(-boardgame) %>% 
+  ggpairs(progress = FALSE)
+```
+
+Contenders are:
+* average_bgg_rating
+* price_i_paid
+* average_difficulty
+* min_players
+
+```{r}
+bg_model1 <- lm(my_rating ~ average_bgg_rating, data = bg_data)
+
+
+autoplot(bg_model1) # look okay
+
+summary(bg_model1)
+  
+```
+Looks like average_bgg_rating is a good predictor of my own rating!
+
+Let's add more predictors:
+
+```{r}
+bg_model2 <- lm(my_rating ~ average_bgg_rating + price_i_paid , data = bg_data)
+
+
+autoplot(bg_model2) # look okay
+
+summary(bg_model2)
+```
+
+Once Avg BGG rating is included as a predictor it seems as though the price I paid for it isn't much of a factor.
+
+```{r}
+bg_model2 <- lm(my_rating ~ average_bgg_rating + average_difficulty , data = bg_data)
+
+
+autoplot(bg_model2) # look okay
+
+summary(bg_model2)
+```
+
+And neither is average difficulty / BGG weight.
+
+Final model will include average_bgg_rating, average_difficulty and price
+
+```{r}
+bg_model_final <- lm(my_rating ~ average_bgg_rating + average_difficulty + price_i_paid + average_players + play_time + rec_age_range_from, data = bg_data)
+
+
+autoplot(bg_model_final) # look okay
+
+summary(bg_model_final)
+```
+Model explains almost half of the variance in my ratings. Seems that the:
+
+* BGG average rating has a positive relationship with my rating (+1 in BGG rating leads to +1.11 in my rating)
+* the difficulty has a positive relationship with my rating (+ 1 in difficulty/weight leads to + 0.97 in my rating)
+* The recommended ages (i.e. ages x and above) has a negative relationship with my rating (+ 1 in age leads to -0.20 in my rating)
+
+The other predictors are not significant.
+
+Interesting that I like games that are more difficult but not games for older players. Less interesting that I rate games higher if they're rated higher on BGG.
+
+```{r}
+car::vif(bg_model_final)
+
+alias(bg_model_final)
+
+library(see)
+library(performance)
+
+check_model(bg_model_final)
+```
+

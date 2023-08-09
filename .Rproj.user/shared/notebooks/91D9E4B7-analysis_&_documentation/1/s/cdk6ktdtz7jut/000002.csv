@@ -1,0 +1,12 @@
+"0","```r
+players_cluster_plot <- clusterings %>% 
+  unnest(cols = c(augmented)) %>%
+  filter(k <= 4) %>%
+  ggplot(aes(x = average_players, y = my_rating)) +
+  geom_point(aes(colour = .cluster)) +
+  labs(x = \"Average players\",
+       y = \"My rating\",
+       colour = \"Cluster\")
+
+players_cluster_plot
+```"

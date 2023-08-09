@@ -1,0 +1,10 @@
+"0","```r
+playtime_ratings <- bg_data %>% 
+  select(my_rating, play_time) %>% 
+  drop_na()
+
+playtime_ratings_scaled <- playtime_ratings %>%
+  mutate_if(is.numeric, scale)   # scale values
+
+playtime_ratings
+```"

@@ -1,0 +1,12 @@
+"0","```r
+library(corrr)
+
+# bg_data %>% 
+#   corrr::correlate() %>% 
+#   corrr::network_plot(colors = c(\"red\", \"green\"))
+#   cor(my_rating, average_bgg_rating)
+  
+bg_data %>% 
+  drop_na(my_rating) %>% 
+  summarise(correlation = cor(my_rating, average_bgg_rating))
+```"

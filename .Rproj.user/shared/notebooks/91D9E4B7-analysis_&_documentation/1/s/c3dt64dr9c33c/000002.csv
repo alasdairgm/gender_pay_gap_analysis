@@ -1,0 +1,10 @@
+"0","```r
+cluster_means <- clusterings %>% 
+  unnest(augmented) %>%
+  filter(k == 4) %>%
+  group_by(.cluster) %>%
+  summarise(mean_playtime = mean(play_time), mean_rating = mean(my_rating)) %>% 
+  select(-.cluster)
+
+cluster_means
+```"

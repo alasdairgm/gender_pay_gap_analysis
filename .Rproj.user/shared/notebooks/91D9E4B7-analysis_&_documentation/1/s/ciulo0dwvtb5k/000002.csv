@@ -1,0 +1,10 @@
+"0","```r
+players_ratings <- bg_data %>% 
+  select(my_rating, average_players) %>% 
+  drop_na()
+
+players_ratings_scaled <- players_ratings %>% 
+  mutate_if(is.numeric, scale)   # scale values
+
+players_ratings
+```"

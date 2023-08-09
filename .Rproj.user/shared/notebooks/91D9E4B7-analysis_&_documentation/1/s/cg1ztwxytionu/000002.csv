@@ -1,0 +1,19 @@
+"0","```r
+bg_data %>% 
+  filter(boardgame %in% c(\"Everdell: The Complete Collection\",
+                          \"Root\", \"Sleeping Gods\", \"Gorilla Marketing\",
+                          \"Bears Vs Babies\")) %>% 
+  mutate(boardgame = if_else(str_detect(boardgame, \"Everdell\"),
+                                         \"Everdell\", boardgame)) %>% 
+  ggplot(aes(x = my_rating, y = average_bgg_rating)) +
+  geom_point(colour = \"steelblue\", size = 5) +
+  geom_text(aes(label = boardgame),
+            nudge_x = -0.6, angle = 45) +
+  xlim(c(0, 10)) +
+  ylim(c(0, 10)) +
+  labs(x = \"\nMy rating\",
+       y = \"Average BGG rating\",
+       ) +
+  theme(text = element_text(size = 16)) +
+  theme_minimal()
+```"

@@ -1,0 +1,8 @@
+"0","```r
+bg_model2 <- lm(my_rating ~ average_bgg_rating + average_difficulty , data = bg_data)
+
+
+autoplot(bg_model2) # look okay
+
+summary(bg_model2)
+```"

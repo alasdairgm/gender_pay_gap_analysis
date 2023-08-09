@@ -1,0 +1,16 @@
+"0","```r
+bg_data %>% 
+  filter(bgg_rank <= 1000) %>% 
+  # removing anything after a colon to save space
+  mutate(boardgame = case_when(
+    str_detect(boardgame, \":\") ~ str_extract(boardgame, \"(.+): \", group = 1),
+    .default = boardgame)) %>%
+  mutate(top_100 = if_else(bgg_rank <= 100, TRUE, FALSE)) %>% 
+  ggplot() +
+  geom_col(aes(x = reorder(boardgame, -bgg_rank), y = bgg_rank, fill = top_100)) +
+  coord_flip() +
+  labs(y = \"BGG rank\",
+       x = \"\",
+       fill = \"Top 100?\")
+
+```"

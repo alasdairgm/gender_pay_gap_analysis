@@ -1,0 +1,31 @@
+"0","```r
+
+summary(bg_model_final)
+```"
+"1","
+Call:
+lm(formula = my_rating ~ average_bgg_rating + average_difficulty + 
+    price_i_paid + average_players + play_time + rec_age_range_from, 
+    data = bg_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-3.13027 -0.51246 -0.02615  0.56642  1.91786 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)   
+(Intercept)        -1.593401   2.797042  -0.570  0.57208   
+average_bgg_rating  1.114963   0.366290   3.044  0.00412 **
+average_difficulty  0.965406   0.471437   2.048  0.04718 * 
+price_i_paid        0.007929   0.006728   1.178  0.24558   
+average_players     0.219935   0.144751   1.519  0.13653   
+play_time          -0.003327   0.004850  -0.686  0.49665   
+rec_age_range_from -0.204407   0.094308  -2.167  0.03621 * 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1.071 on 40 degrees of freedom
+  (10 observations deleted due to missingness)
+Multiple R-squared:    0.5,	Adjusted R-squared:  0.425 
+F-statistic: 6.667 on 6 and 40 DF,  p-value: 6.054e-05
+"

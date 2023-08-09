@@ -1,0 +1,6 @@
+"0","```r
+bg_data %>% 
+  mutate(top_100 = if_else(bgg_rank <= 100, TRUE, FALSE)) %>% 
+  group_by(top_100) %>% 
+  summarise(prop_in_top_100 = n() / nrow(bg_data) * 100)
+```"

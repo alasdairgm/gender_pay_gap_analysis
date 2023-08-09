@@ -1,0 +1,7 @@
+"0","```r
+bg_data %>% 
+  ggplot(aes(x = average_players, y = my_rating)) +
+  geom_point(colour = \"steelblue\") +
+  geom_smooth(method = \"lm\", se = FALSE) +
+  theme_minimal() 
+```"

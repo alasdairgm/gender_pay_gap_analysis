@@ -2,12 +2,26 @@
 title: "Gender pay gap analysis"
 output:
   html_document:
-    df_print: paged
+    toc: true # contents
+    toc_float: true # contents float
+    number_sections: true
+    df_print: paged # paged dataframes
+    css: styles.css # use css file from this project
+  pdf_document: default
 ---
 
-Data is from https://gender-pay-gap.service.gov.uk/viewing/download
+# Introduction
 
-# Load in packages and data
+This report is based on analysis of UK companies gender pay data provided by the 
+companies themselves.
+
+The data is from https://gender-pay-gap.service.gov.uk/viewing/download
+
+I explore the trends and patterns within the data and make comparisons between 
+Scotland the the rest of the UK.
+
+
+## Load in packages and data
 
 ```{r}
 library(tidyverse)
@@ -31,7 +45,7 @@ pay_combined <- read_csv(list_of_files, id = "file_name")
 pay_combined
 ```
 
-# Clean the data
+## Clean the data
 
 ```{r}
 pay_trimmed <- pay_combined %>% 
@@ -42,7 +56,7 @@ pay_trimmed <- pay_combined %>%
 pay_trimmed
 ```
 
-# Find out the Scottish postcodes
+## Find out the Scottish postcodes
 
 Can be found many places but I noted them down from here:
 https://www.townscountiespostcodes.co.uk/postcodes-in-scotland/
@@ -61,6 +75,7 @@ pay_region <- pay_trimmed %>%
 
 pay_region
 ```
+
 
 # What pay differences can we see in Scotland year on year?
 

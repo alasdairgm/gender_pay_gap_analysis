@@ -1,0 +1,4 @@
+"0","```r
+# can see sentiment words here
+get_sentiments(\"afinn\")
+```"

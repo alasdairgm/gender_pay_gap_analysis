@@ -1,0 +1,8 @@
+"0","```r
+library(factoextra)
+
+fviz_nbclust(playtime_ratings_scaled, 
+             kmeans, 
+             method = \"wss\", 
+             nstart = 25)
+```"

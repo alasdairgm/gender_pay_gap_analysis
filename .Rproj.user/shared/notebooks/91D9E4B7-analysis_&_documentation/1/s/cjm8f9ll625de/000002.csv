@@ -1,0 +1,20 @@
+"0","```r
+library(modelr)
+```"
+"1","
+Attaching package: ‘modelr’
+
+The following object is masked from ‘package:broom’:
+
+    bootstrap
+"
+"0","```r
+library(GGally)
+```"
+"1","Registered S3 method overwritten by 'GGally':
+  method from   
+  +.gg   ggplot2
+"
+"0","```r
+library(ggfortify)
+```"

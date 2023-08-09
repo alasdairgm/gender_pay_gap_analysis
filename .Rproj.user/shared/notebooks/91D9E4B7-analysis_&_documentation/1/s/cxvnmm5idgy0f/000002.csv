@@ -1,0 +1,5 @@
+"0","```r
+bg_data %>% 
+  select(-boardgame) %>% 
+  ggpairs(progress = FALSE)
+```"

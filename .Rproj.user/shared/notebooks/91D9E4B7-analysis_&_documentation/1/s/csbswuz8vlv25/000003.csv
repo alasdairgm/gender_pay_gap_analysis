@@ -1,0 +1,7 @@
+"0","```r
+
+players_cluster_plot +
+  geom_point(data = cluster_means,
+             aes(x = mean_players, y = mean_rating),
+             colour = \"black\", shape = 8, size = 3)
+```"

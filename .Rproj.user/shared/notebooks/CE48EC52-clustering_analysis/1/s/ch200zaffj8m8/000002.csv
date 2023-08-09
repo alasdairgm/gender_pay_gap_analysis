@@ -1,0 +1,5 @@
+"0","```r
+all_synopses_tf_idf %>% 
+  group_by(title) %>% 
+  slice_max(tf_idf, n = 1)
+```"

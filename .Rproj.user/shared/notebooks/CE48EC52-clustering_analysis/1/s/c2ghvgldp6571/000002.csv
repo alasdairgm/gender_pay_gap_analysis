@@ -1,0 +1,14 @@
+"0","```r
+library(tidyverse)
+library(tidytext)
+
+movies <- read_csv(\"clean_data/movies_clean.csv\")
+```"
+"1","Rows: 11 Columns: 11── Column specification ───────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: \",\"
+chr  (4): title, genres, directors, synopsis
+dbl  (5): your_rating, im_db_rating, runtime_mins, year, num_votes
+date (2): date_rated, release_date
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+"
