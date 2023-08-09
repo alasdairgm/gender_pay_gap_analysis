@@ -1,0 +1,6 @@
+"0","pay_trimmed <- pay_combined %>% "
+"0","  clean_names() %>% "
+"0","  mutate(year_starting = as.numeric(str_extract(file_name, ""[0-9]+"")), .before = 1) %>%  # take the first year listed in the file name"
+"0","  select(contains(c(""year"", ""post"", ""percent"", ""quartile"", ""size""))) # selecting desired columns"
+"0",""
+"0","pay_trimmed"

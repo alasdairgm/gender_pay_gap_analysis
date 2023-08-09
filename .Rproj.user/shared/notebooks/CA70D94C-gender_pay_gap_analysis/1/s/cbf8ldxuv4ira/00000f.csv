@@ -1,0 +1,38 @@
+"0","# here is how I would read the data files one at a time"
+"0","gender_pay_2017_18 <- read_csv(""data/UK Gender Pay Gap Data - 2017 to 2018.csv"")"
+"2","[1mRows: [22m[34m10219[39m [1mColumns: [22m[34m27[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[31mchr[39m (11): EmployerName, Address, PostCode, CompanyNumber, SicCodes, CompanyLinkToGPG...
+[32mdbl[39m (15): EmployerId, DiffMeanHourlyPercent, DiffMedianHourlyPercent, DiffMeanBonusP...
+[33mlgl[39m  (1): SubmittedAfterTheDeadline"
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","gender_pay_2018_19 <- read_csv(""data/UK Gender Pay Gap Data - 2018 to 2019.csv"")"
+"2","[1mRows: [22m[34m10459[39m [1mColumns: [22m[34m27[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[31mchr[39m (11): EmployerName, Address, PostCode, CompanyNumber, SicCodes, CompanyLinkToGPG...
+[32mdbl[39m (15): EmployerId, DiffMeanHourlyPercent, DiffMedianHourlyPercent, DiffMeanBonusP...
+[33mlgl[39m  (1): SubmittedAfterTheDeadline"
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","# read in multiple files in one:"
+"0","list_of_files <- list.files(path = ""data"", # specify the folder path"
+"0","                            pattern = ""\\.csv$"", # only return files that end in csv"
+"0","                            full.names = TRUE # foldeer path attached to the beginning of the file name"
+"0","                            )"
+"0",""
+"0","pay_combined <- read_csv(list_of_files, id = ""file_name"")"
+"2","[1mRows: [22m[34m59315[39m [1mColumns: [22m[34m28[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[31mchr[39m (11): EmployerName, Address, PostCode, CompanyNumber, SicCodes, CompanyLinkToGPG...
+[32mdbl[39m (15): EmployerId, DiffMeanHourlyPercent, DiffMedianHourlyPercent, DiffMeanBonusP...
+[33mlgl[39m  (1): SubmittedAfterTheDeadline"
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","pay_combined"

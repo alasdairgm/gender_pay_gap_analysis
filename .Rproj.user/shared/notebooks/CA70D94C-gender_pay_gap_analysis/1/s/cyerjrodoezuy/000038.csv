@@ -1,0 +1,21 @@
+"0","pay_region %>% 
+  group_by(region, year_starting) %>% 
+  mutate(region = factor(as.factor(region), levels = c(""Scotland"", ""Rest of UK""))) %>% 
+  summarise(mean_diff_hourly_across_companies = mean(diff_mean_hourly_percent)) %>% 
+  ggplot() +
+  geom_line(aes(x = year_starting, y = mean_diff_hourly_across_companies, colour = region),
+            linewidth = 2) + 
+  scale_x_continuous(breaks = c(2017, 2018, 2019, 2020, 2021, 2022, 2023)) +
+  labs(
+    title = ""Average gender pay differences between Scotland and the rest of the UK"",
+    subtitle = ""2017 - 2023\n"",
+    x = ""\nFinancial year starting"",
+    y = ""Overall mean % difference in hourly pay\n(M - F)"",
+    colour = """"
+  ) +
+  theme_minimal() +
+   theme(panel.grid = element_blank(),
+         axis.line = element_line(colour = ""black"")) +
+  ylim(c(0, 15))
+"
+"2","`summarise()` has grouped output by 'region'. You can override using the `.groups` argument."

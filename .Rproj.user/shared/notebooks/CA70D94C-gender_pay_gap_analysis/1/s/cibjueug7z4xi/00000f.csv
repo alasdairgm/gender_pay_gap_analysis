@@ -1,0 +1,4 @@
+"0","pay_region %>% "
+"0","  filter(region == ""Scotland"") %>% "
+"0","  group_by(year_starting) %>% "
+"0","  summarise(nrows = n())"

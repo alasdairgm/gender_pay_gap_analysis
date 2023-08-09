@@ -1,0 +1,7 @@
+"0","pay_region <- pay_trimmed %>% "
+"0","  mutate(post_code = str_extract(post_code, ""[A-Z0-9]+"")) %>% "
+"0","  mutate(post_code = str_remove_all(post_code, ""[0-9]+"")) %>% "
+"0","  mutate(region = if_else(post_code %in% scottish_postcodes, ""Scotland"", ""Rest of UK""), .after = post_code) %>% "
+"0","  select(-post_code)"
+"0",""
+"0","pay_region"

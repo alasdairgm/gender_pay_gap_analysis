@@ -1,0 +1,26 @@
+{
+    "id": "B52F83AB",
+    "path": "~/github/gender_pay_gap_analysis/gender_pay_gap_analysis.Rmd",
+    "project_path": "gender_pay_gap_analysis.Rmd",
+    "type": "r_markdown",
+    "hash": "2394583160",
+    "contents": "",
+    "dirty": false,
+    "created": 1691530886128.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "199,0",
+        "scrollLine": "196"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1691533520,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1691533520425,
+    "read_only": false,
+    "read_only_alternatives": []
+}
