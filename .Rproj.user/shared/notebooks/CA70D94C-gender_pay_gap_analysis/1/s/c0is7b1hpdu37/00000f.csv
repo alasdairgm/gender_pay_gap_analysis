@@ -1,0 +1,13 @@
+"0","null_distribution <- hyp_test_data %>% "
+"0","  specify(diff_mean_hourly_percent ~ region) %>% "
+"0","  hypothesize(null = ""independence"") %>% #the null hypothesis is there is no relationship i.e. they are independent"
+"0","  generate(reps = 1000, type = ""permute"") %>% "
+"0","  calculate(stat = ""diff in means"", order = c(""London"", ""Edinburgh"")) "
+"2","Dropping unused factor levels Rest of UK from the supplied explanatory variable 'region'.
+"
+"0","head(null_distribution)"
+"1","Response: diff_mean_hourly_percent (numeric)
+Explanatory: region (factor)
+Null Hypothesis: independence"
+"1","
+"

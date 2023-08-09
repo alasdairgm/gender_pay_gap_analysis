@@ -1,0 +1,11 @@
+"0","observed_stat <- hyp_test_data %>% "
+"0","  specify(diff_mean_hourly_percent ~ region) %>%"
+"0","  calculate(stat = ""diff in means"", order = c(""London"", ""Edinburgh""))"
+"2","Dropping unused factor levels Rest of UK from the supplied explanatory variable 'region'.
+"
+"0","  "
+"0","observed_stat"
+"1","Response: diff_mean_hourly_percent (numeric)
+Explanatory: region (factor)"
+"1","
+"

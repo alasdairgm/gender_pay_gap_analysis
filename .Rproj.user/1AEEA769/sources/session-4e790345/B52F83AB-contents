@@ -12,6 +12,7 @@ Data is from https://gender-pay-gap.service.gov.uk/viewing/download
 ```{r}
 library(tidyverse)
 library(janitor)
+library(infer)
 ```
 
 ```{r}
@@ -199,7 +200,7 @@ pay_lon_ed
 ```{r}
 
 pay_lon_ed %>% 
-  filter(region != "Rest of UK") %>% 
+  filter(region != "Rest of UK") %>% # filter out irrelevant companies
   ggplot() +
   geom_boxplot(aes(x = year_starting, y = diff_mean_hourly_percent, group = year_starting), alpha = 0.5) +
     facet_wrap(~ region) +
@@ -217,3 +218,87 @@ pay_lon_ed %>%
   coord_flip()
 ```
 
+We can see here that, across the years 2017 to 2023, the disparity in hourly pay
+between men and women is very similar between Edinburgh- and London-based companies.
+Specifically, the values of mean percentage difference in pay are mostly positive
+which indicates men are paid more than women.
+
+```{r}
+pay_lon_ed %>% 
+  filter(region != "Rest of UK") %>% 
+  group_by(region) %>% 
+  summarise(mean_diff_hourly_across_companies = mean(diff_mean_hourly_percent),
+            sd_diff_hourly_across_companies = sd(diff_mean_hourly_percent))
+```
+
+The total mean difference for Edinburgh companies across all years is 12.2% (SD: 13.3%) and for London companies is 13.6% (SD: 14.7%). These positive values indicate men being paid more hourly on average.
+
+## Hypothesis test comparing means between Edinburgh and London
+
+```{r}
+hyp_test_data <- pay_lon_ed %>% 
+  filter(region != "Rest of UK") %>% 
+  select(region, diff_mean_hourly_percent)
+
+# visualise data
+hyp_test_data %>% 
+  ggplot(aes(x = region, y = diff_mean_hourly_percent)) +
+  geom_boxplot()
+```
+
+We can see the interquartile ranges of the distributions overlap substantially, and the
+London values are much wider spread.
+
+Will now create the null distribution:
+```{r}
+null_distribution <- hyp_test_data %>% 
+  specify(diff_mean_hourly_percent ~ region) %>% 
+  hypothesize(null = "independence") %>% #the null hypothesis is there is no relationship i.e. they are independent
+  generate(reps = 1000, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("London", "Edinburgh")) 
+
+head(null_distribution)
+```
+
+We can see here that we have 1000 (only 6 shown) replicated samples, and each has
+a difference in means shown (stat). 
+
+Now we have our null distribution, let’s calculate our observed statistic and then
+visualise the null distribution and where the observed statistic lies on the distribution.
+
+```{r}
+observed_stat <- hyp_test_data %>% 
+  specify(diff_mean_hourly_percent ~ region) %>%
+  calculate(stat = "diff in means", order = c("London", "Edinburgh"))
+  
+observed_stat
+```
+So the observed statistic is that the total mean difference in percent in London
+is 1.4% higher than in Edinburgh. Will now test to see if this is significant at the 
+0.05 level.
+
+```{r}
+null_distribution %>%
+  visualise() +
+  shade_p_value(obs_stat = observed_stat, direction = "right")
+```
+
+So we see from the visualisation that the observed statistic is towards the
+edge of the null distribution. So there would be a small probability
+of getting a more extreme value than the observed value under the null hypothesis
+(that the difference between cities = 0)
+
+Let’s calculate the p-value to be sure.
+
+```{r}
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = observed_stat, direction = "right")
+
+p_value
+```
+
+P is less than 0.05, meaning this difference is statistically significant. I can
+therefore reject the null hypothesis and conclude that I have found enough evidence
+in the data to to suggest that the total mean percentage difference in hourly pay
+(Male - Female) across London companies is statistically significantly greater than
+across Edinburgh companies.
